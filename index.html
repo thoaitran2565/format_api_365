@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JSON Parser</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        textarea {
+            width: 100%;
+            height: 100px;
+        }
+        pre {
+            background: #f4f4f4;
+            padding: 10px;
+            border: 1px solid #ddd;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .string { color: green; }
+        .number { color: darkorange; }
+        .boolean { color: blue; }
+        .null { color: magenta; }
+        .key { color: red; }
+    </style>
+</head>
+<body>
+    <h2>JSON Parser</h2>
+    <textarea id="jsonInput" placeholder="Nhập chuỗi JSON..."></textarea>
+    <button onclick="parseJSON()">Chuyển đổi</button>
+    <button onclick="copyJSON()">Copy kết quả</button>
+    <button onclick="pasteJSON()">Dán</button>
+    <button onclick="openWeb()">Mở web</button>
+    <h3>Kết quả:</h3>
+    <pre id="jsonOutput"></pre>
+
+    <script>
+        function parseJSON() {
+            const input = document.getElementById("jsonInput").value;
+            const output = document.getElementById("jsonOutput");
+            try {
+                const parsed = JSON.parse(input);
+                const formattedJSON = JSON.stringify(parsed, null, 2);
+                output.innerHTML = "<code>" + syntaxHighlight(parsed) + "</code>";
+            } catch (e) {
+                output.textContent = "Lỗi: " + e.message;
+            }
+        }
+
+        function copyJSON() {
+            const output = document.getElementById("jsonOutput").innerText;
+            copyToClipboard(output);
+        }
+
+        function pasteJSON() {
+            navigator.clipboard.readText().then(text => {
+                document.getElementById("jsonInput").value = text;
+            }).catch(err => console.error("Lỗi dán dữ liệu: ", err));
+        }
+
+        function copyToClipboard(text) {
+            const tempTextArea = document.createElement("textarea");
+            tempTextArea.value = text;
+            document.body.appendChild(tempTextArea);
+            tempTextArea.select();
+            document.execCommand("copy");
+            document.body.removeChild(tempTextArea);
+        }
+
+        function openWeb() {
+            window.open("https://codebeautify.org/jsonviewer", "_blank");
+        }
+
+        function syntaxHighlight(json) {
+            if (typeof json !== 'string') {
+                json = JSON.stringify(json, null, 2);
+            }
+            json = json.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+            return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(:)?|\b(true|false|null)\b|-?\d+(\.\d*)?(e[+-]?\d+)?)/g, function (match) {
+                let cls = 'number';
+                if (/^"/.test(match)) {
+                    if (/:$/.test(match)) {
+                        cls = 'key';
+                    } else {
+                        cls = 'string';
+                    }
+                } else if (/true|false/.test(match)) {
+                    cls = 'boolean';
+                } else if (/null/.test(match)) {
+                    cls = 'null';
+                }
+                return '<span class="' + cls + '">' + match + '</span>';
+            });
+        }
+    </script>
+</body>
+</html>
